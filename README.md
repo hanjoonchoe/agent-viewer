@@ -12,6 +12,8 @@ A single-page web app that lists **ERC-8004 agents** from an on-chain registry a
 - **Card enrichment** — each agent's ERC-8004 registration card (`tokenURI`) is fetched client-side to show its description, thumbnail, category/tags, `x402` support, and skills with pricing.
 - **Filtering & sorting** — filter by status and protocol (`a2a` / `mcp`, derived from service endpoints), sort by id or name.
 - **Detail dialog** — click any card for the full record: owner (linked to Basescan), availability, liveness, card resolution, token URI, service endpoints, and skills.
+
+  ![agent detail dialog](docs/screenshot-detail.png)
 - **Raw JSON** — inspect the raw API response or any single agent's record.
 - **Query controls** — set `max` and `fromBlock`, reload manually or auto-reload every 30 s.
 
