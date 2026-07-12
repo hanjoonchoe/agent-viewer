@@ -123,6 +123,43 @@ describe('App', () => {
     expect(dialog).toHaveTextContent('"agentId": "1"');
   });
 
+  it('paints the quick first slice while the full scan is still running', async () => {
+    let resolveFull!: (v: unknown) => void;
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        // quick slice (max=24) answers immediately
+        .mockResolvedValueOnce({ ok: true, status: 200, json: async () => payload })
+        // full scan (max=200) stays pending until we release it
+        .mockImplementationOnce(() => new Promise((r) => (resolveFull = r)))
+        // card-enrichment fetches
+        .mockResolvedValue({ ok: true, status: 200, json: async () => ({}) }),
+    );
+    render(<App />);
+
+    // Grid is up from the quick slice, with the background update indicated.
+    expect(await screen.findByText('Alpha')).toBeInTheDocument();
+    expect(screen.getByTestId('meta')).toHaveTextContent('updating…');
+
+    resolveFull({ ok: true, status: 200, json: async () => payload });
+    await screen.findByText('Alpha');
+  });
+
+  it('keeps showing stale agents while a reload is in flight', async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText('Alpha');
+
+    vi.stubGlobal('fetch', () => new Promise(() => {})); // reload never resolves
+    await user.click(screen.getByRole('button', { name: /Reload|Loading/ }));
+
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+    expect(screen.queryByText(/Scanning the chain/)).not.toBeInTheDocument();
+    expect(screen.getByTestId('meta')).toHaveTextContent('updating…');
+  });
+
   it('does not surface its own aborted fetch as an error (StrictMode remount)', async () => {
     stubFetch();
     render(

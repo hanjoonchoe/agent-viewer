@@ -40,8 +40,8 @@ export default function App() {
 
   const showRawAgent = (a: Agent) => setRaw({ title: `agent #${a.agentId}`, data: a });
 
-  const ready = state.status === 'ready' ? state : null;
-  const filtered = ready ? applyView(ready.data.agents, view) : [];
+  const { data, loading, error, refreshedAt } = state;
+  const filtered = data ? applyView(data.agents, view) : [];
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = Math.min(page, pages - 1); // a smaller result set can strand `page` past the end
   const visible = filtered.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
@@ -53,43 +53,43 @@ export default function App() {
           <span className="nav-brand">
             agent <span className="accent">·</span> <span className="accent">viewer</span>
           </span>
-          {ready && (
+          {data && (
             <span className="tag tag-outline network-tag">
               <span className="dot" />
-              {ready.data.network} · {ready.data.chainId}
+              {data.network} · {data.chainId}
             </span>
           )}
           <Controls
             initial={INITIAL_QUERY}
-            busy={state.status === 'loading'}
+            busy={loading}
             auto={auto}
             onLoad={(query) => {
               setPage(0);
               load(query);
             }}
             onAutoChange={setAuto}
-            onShowRaw={() => ready && setRaw({ title: 'API response', data: ready.data })}
-            rawDisabled={!ready}
+            onShowRaw={() => data && setRaw({ title: 'API response', data })}
+            rawDisabled={!data}
           />
         </nav>
       </header>
 
       <main className="main">
-        {state.status === 'loading' && (
+        {loading && !data && (
           <div className="state-panel">
             <SpinnerIcon />
             <div className="label">Scanning the chain…</div>
           </div>
         )}
 
-        {state.status === 'error' && (
+        {error && (
           <div className="notice error">
             <InfoIcon />
-            <span>Could not reach the API: {state.message}</span>
+            <span>Could not reach the API: {error}</span>
           </div>
         )}
 
-        {ready && (
+        {data && (
           <>
             <FilterBar
               view={view}
@@ -100,17 +100,23 @@ export default function App() {
             />
             <p className="meta" data-testid="meta">
               <span>
-                <span className="mono">{ready.data.count}</span> agents
+                <span className="mono">{data.count}</span> agents
               </span>
               <span className="sep">·</span>
               <span>
-                from block <span className="mono">{ready.data.fromBlock}</span>
+                from block <span className="mono">{data.fromBlock}</span>
               </span>
               <span className="sep">·</span>
               <span>
-                refreshed <span className="mono">{ready.refreshedAt}</span>
+                refreshed <span className="mono">{refreshedAt}</span>
               </span>
-              {filtered.length !== ready.data.agents.length && (
+              {loading && (
+                <>
+                  <span className="sep">·</span>
+                  <span>updating…</span>
+                </>
+              )}
+              {filtered.length !== data.agents.length && (
                 <>
                   <span className="sep">·</span>
                   <span>
