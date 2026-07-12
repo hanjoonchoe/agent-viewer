@@ -1,3 +1,7 @@
+/**
+ * Inline SVG icons (Lucide outlines, 24px viewBox) used across the app.
+ * The design brief mandates SVG icons over emoji for the status states.
+ */
 import type { ReactNode, SVGProps } from 'react';
 import type { Status } from '../lib/types';
 
@@ -96,4 +100,5 @@ const STATUS_ICONS: Record<Status, ReactNode> = {
   ),
 };
 
+/** The icon for a status pill: check / clock / question mark / octagon-x. */
 export const StatusIcon = ({ status }: { status: Status }) => <Icon>{STATUS_ICONS[status]}</Icon>;

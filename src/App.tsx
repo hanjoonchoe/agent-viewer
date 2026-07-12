@@ -17,6 +17,12 @@ interface RawView {
   data: unknown;
 }
 
+/**
+ * Page shell: sticky header (brand, network badge, query controls), the
+ * filterable/paginated agent grid, and the detail / raw-JSON dialogs.
+ * Server state lives in {@link useAgents}; everything else here is view
+ * state (filters, page, dialogs, auto-reload).
+ */
 export default function App() {
   const { state, load } = useAgents(INITIAL_QUERY);
   const [view, setView] = useState<ViewOptions>(INITIAL_VIEW);

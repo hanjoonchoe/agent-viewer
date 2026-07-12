@@ -2,8 +2,14 @@ import { useState } from 'react';
 import type { AgentsQuery } from '../hooks/useAgents';
 import { BracesIcon, ClockIcon, RefreshIcon } from './icons';
 
+/** Interval of the auto-reload toggle, in seconds. */
 export const AUTO_RELOAD_SECONDS = 30;
 
+/**
+ * Header controls: `max` / `from block` query inputs with a Reload submit,
+ * the auto-reload toggle, and the raw-API-response button. Input state is
+ * local; the parent only hears about it on submit.
+ */
 export function Controls({
   initial,
   busy,

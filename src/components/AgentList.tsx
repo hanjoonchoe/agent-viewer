@@ -21,9 +21,17 @@ function Corners() {
 }
 
 interface CardActions {
+  /** Open the raw-JSON dialog for this agent. */
   onShowRaw: (agent: Agent) => void;
+  /** Open the detail dialog for this agent. */
   onSelect: (agent: Agent) => void;
 }
+
+/**
+ * One agent as a clickable card: id + protocol chips + status pill header,
+ * name/description (card-enriched), owner link, and service endpoints.
+ * The whole card opens the detail dialog; inner links stop propagation.
+ */
 
 function AgentCard({ agent, onShowRaw, onSelect }: { agent: Agent } & CardActions) {
   const status = statusOf(agent);
@@ -134,6 +142,7 @@ function AgentCard({ agent, onShowRaw, onSelect }: { agent: Agent } & CardAction
   );
 }
 
+/** Responsive grid of {@link AgentCard}s for the currently visible page. */
 export function AgentList({ agents, onShowRaw, onSelect }: { agents: Agent[] } & CardActions) {
   return (
     <ul className="grid">

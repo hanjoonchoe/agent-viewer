@@ -57,6 +57,12 @@ function Skill({ skill }: { skill: SkillInfo }) {
   );
 }
 
+/**
+ * Modal with the full record of one agent: status/protocol/category chips,
+ * card-enriched description and thumbnail, on-chain fields (owner linked to
+ * Basescan, token URI, services), and skills with vendor pricing. Closes on
+ * backdrop click or the ✕ button.
+ */
 export function AgentDetail({
   agent,
   onClose,

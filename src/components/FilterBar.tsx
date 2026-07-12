@@ -4,6 +4,11 @@ import { PROTOCOLS, SORTS, toggled, type Sort, type ViewOptions } from '../lib/f
 const STATUSES: Status[] = ['available', 'unavailable', 'unknown', 'dead'];
 const SORT_LABELS: Record<Sort, string> = { 'id-desc': 'id ↓', 'id-asc': 'id ↑', name: 'name' };
 
+/**
+ * Segmented controls for the list view: status and protocol multi-select
+ * filters (empty selection = show all) and a single-select sort order.
+ * Stateless — emits a whole new {@link ViewOptions} on every change.
+ */
 export function FilterBar({ view, onChange }: { view: ViewOptions; onChange: (view: ViewOptions) => void }) {
   return (
     <div className="filters">

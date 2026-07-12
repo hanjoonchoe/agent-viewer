@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { fetchAgentCard, type AgentCardInfo } from '../lib/agentCard';
 import type { Agent } from '../lib/types';
 
+/**
+ * Loads the ERC-8004 registration card for `agent` (from its `tokenURI`).
+ *
+ * Skips agents whose card is known-broken (`cardOk === false`) or whose URI
+ * isn't fetchable. Results are cached per session by {@link fetchAgentCard},
+ * so re-mounts (page flips) don't refetch.
+ *
+ * @returns `card` — parsed card info, or `null` while loading / on failure;
+ *   `fetching` — true while the card request is in flight.
+ */
 export function useAgentCard(agent: Agent): { card: AgentCardInfo | null; fetching: boolean } {
   const resolvable = agent.cardOk && /^(https?|data):/.test(agent.tokenURI);
   const [card, setCard] = useState<AgentCardInfo | null>(null);
