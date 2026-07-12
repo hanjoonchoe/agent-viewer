@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AgentList } from './AgentList';
-import type { Agent } from './types';
+import type { Agent } from '../lib/types';
 
 // Card enrichment fetches tokenURI; keep unit tests off the network.
 beforeEach(() => vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline'))));

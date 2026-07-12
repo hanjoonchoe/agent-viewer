@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchAgents } from './api';
-import type { AgentsResponse } from './types';
+import { fetchAgents } from '../lib/api';
+import type { AgentsResponse } from '../lib/types';
 
 export interface AgentsQuery {
   max: number;

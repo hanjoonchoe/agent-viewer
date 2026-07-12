@@ -1,6 +1,7 @@
-import { statusOf, type Agent } from './types';
-import { useAgentCard, type SkillInfo } from './agentCard';
-import { protocolsOf } from './filtering';
+import { statusOf, type Agent } from '../lib/types';
+import { useAgentCard } from '../hooks/useAgentCard';
+import type { SkillInfo } from '../lib/agentCard';
+import { protocolsOf } from '../lib/filtering';
 import { SpinnerIcon, StatusIcon } from './icons';
 
 const BASESCAN = 'https://sepolia.basescan.org/address/';

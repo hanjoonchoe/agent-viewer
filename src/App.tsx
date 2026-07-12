@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { AgentDetail } from './AgentDetail';
-import { AgentList } from './AgentList';
-import type { Agent } from './types';
-import { Controls, AUTO_RELOAD_SECONDS } from './Controls';
-import { FilterBar } from './FilterBar';
-import { applyView, type ViewOptions } from './filtering';
-import { InfoIcon, SpinnerIcon } from './icons';
-import { useAgents, type AgentsQuery } from './useAgents';
+import { AgentDetail } from './components/AgentDetail';
+import { AgentList } from './components/AgentList';
+import type { Agent } from './lib/types';
+import { Controls, AUTO_RELOAD_SECONDS } from './components/Controls';
+import { FilterBar } from './components/FilterBar';
+import { applyView, type ViewOptions } from './lib/filtering';
+import { InfoIcon, SpinnerIcon } from './components/icons';
+import { useAgents, type AgentsQuery } from './hooks/useAgents';
 
 const PAGE_SIZE = 12;
 const INITIAL_QUERY: AgentsQuery = { max: 200 };

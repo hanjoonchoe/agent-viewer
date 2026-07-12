@@ -1,5 +1,5 @@
 import type { ReactNode, SVGProps } from 'react';
-import type { Status } from './types';
+import type { Status } from '../lib/types';
 
 function Icon({ size = 13, children, ...rest }: { size?: number; children: ReactNode } & SVGProps<SVGSVGElement>) {
   return (

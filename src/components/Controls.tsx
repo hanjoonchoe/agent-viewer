@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { AgentsQuery } from './useAgents';
+import type { AgentsQuery } from '../hooks/useAgents';
 import { BracesIcon, ClockIcon, RefreshIcon } from './icons';
 
 export const AUTO_RELOAD_SECONDS = 30;

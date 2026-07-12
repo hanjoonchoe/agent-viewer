@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
-import type { Agent, AgentsResponse } from './types';
+import type { Agent, AgentsResponse } from './lib/types';
 
 afterEach(() => vi.unstubAllGlobals());
 

@@ -1,5 +1,5 @@
-import type { Status } from './types';
-import { PROTOCOLS, SORTS, toggled, type Sort, type ViewOptions } from './filtering';
+import type { Status } from '../lib/types';
+import { PROTOCOLS, SORTS, toggled, type Sort, type ViewOptions } from '../lib/filtering';
 
 const STATUSES: Status[] = ['available', 'unavailable', 'unknown', 'dead'];
 const SORT_LABELS: Record<Sort, string> = { 'id-desc': 'id ↓', 'id-asc': 'id ↑', name: 'name' };

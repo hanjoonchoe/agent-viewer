@@ -1,6 +1,6 @@
-import { statusOf, type Agent } from './types';
-import { useAgentCard } from './agentCard';
-import { protocolsOf, type Protocol } from './filtering';
+import { statusOf, type Agent } from '../lib/types';
+import { useAgentCard } from '../hooks/useAgentCard';
+import { protocolsOf, type Protocol } from '../lib/filtering';
 import { BracesIcon, ImageOffIcon, StatusIcon } from './icons';
 
 const PROTO_TAG: Record<Protocol, string> = { a2a: 'tag-accent', mcp: 'tag-neutral' };

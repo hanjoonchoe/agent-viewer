@@ -1,6 +1,3 @@
-import { useEffect, useState } from 'react';
-import type { Agent } from './types';
-
 // The slice of an ERC-8004 registration card (fetched from tokenURI) we render.
 export interface SkillInfo {
   name: string;
@@ -80,30 +77,4 @@ export function fetchAgentCard(tokenURI: string): Promise<AgentCardInfo | null> 
     cache.set(tokenURI, pending);
   }
   return pending;
-}
-
-export function useAgentCard(agent: Agent): { card: AgentCardInfo | null; fetching: boolean } {
-  const resolvable = agent.cardOk && /^(https?|data):/.test(agent.tokenURI);
-  const [card, setCard] = useState<AgentCardInfo | null>(null);
-  const [fetching, setFetching] = useState(resolvable);
-
-  useEffect(() => {
-    if (!resolvable) {
-      setCard(null);
-      setFetching(false);
-      return;
-    }
-    let live = true;
-    setFetching(true);
-    fetchAgentCard(agent.tokenURI).then((info) => {
-      if (!live) return;
-      setCard(info);
-      setFetching(false);
-    });
-    return () => {
-      live = false;
-    };
-  }, [agent.tokenURI, resolvable]);
-
-  return { card, fetching };
 }
