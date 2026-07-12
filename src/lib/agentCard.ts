@@ -3,6 +3,7 @@
  * that an agent's `tokenURI` points at). Everything here is React-free;
  * the {@link ../hooks/useAgentCard} hook wraps it for components.
  */
+import { DEFAULT_API_BASE } from './api';
 
 /** One skill advertised in a registration card, with optional vendor pricing. */
 export interface SkillInfo {
@@ -92,14 +93,22 @@ export function parseCard(json: unknown): AgentCardInfo | null {
 /**
  * Fetches and parses the registration card at `tokenURI` (`https:` or `data:`).
  *
- * One fetch per tokenURI for the whole session; a failed card is cached as
- * `null` so broken hosts aren't hammered on every page flip. Never rejects.
+ * Card hosts often don't send CORS headers, so when the direct browser fetch
+ * fails the request falls back to agent-finder's `/api/card` proxy, which
+ * fetches server-side. One fetch per tokenURI for the whole session; a failed
+ * card is cached as `null` so broken hosts aren't hammered on every page
+ * flip. Never rejects.
  */
 export function fetchAgentCard(tokenURI: string): Promise<AgentCardInfo | null> {
   let pending = cache.get(tokenURI);
   if (!pending) {
     pending = fetch(tokenURI)
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+      .catch(() =>
+        fetch(`${DEFAULT_API_BASE}/api/card?uri=${encodeURIComponent(tokenURI)}`).then((res) =>
+          res.ok ? res.json() : null,
+        ),
+      )
       .then(parseCard)
       .catch(() => null);
     cache.set(tokenURI, pending);

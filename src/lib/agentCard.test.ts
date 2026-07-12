@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { parseCard } from './agentCard';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { fetchAgentCard, parseCard } from './agentCard';
 
 describe('parseCard', () => {
   it('extracts description, image and x402 support', () => {
@@ -49,5 +49,32 @@ describe('parseCard', () => {
     expect(parseCard(null)).toBeNull();
     expect(parseCard('nope')).toBeNull();
     expect(parseCard(42)).toBeNull();
+  });
+});
+
+describe('fetchAgentCard', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('falls back to the agent-finder proxy when the direct fetch fails (CORS)', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch')) // browser CORS failure
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ description: 'via proxy' }) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const card = await fetchAgentCard('https://no-cors.example/card.json');
+
+    expect(card?.description).toBe('via proxy');
+    expect(fetchMock.mock.calls[0][0]).toBe('https://no-cors.example/card.json');
+    expect(fetchMock.mock.calls[1][0]).toContain('/api/card?uri=https%3A%2F%2Fno-cors.example%2Fcard.json');
+  });
+
+  it('caches a null result when both direct and proxy fetches fail', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('offline'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect(await fetchAgentCard('https://dead.example/card.json')).toBeNull();
+    expect(await fetchAgentCard('https://dead.example/card.json')).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2); // direct + proxy once; second call served from cache
   });
 });
