@@ -13,14 +13,14 @@ export interface AgentsQuery {
 export type AgentsState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; data: AgentsResponse };
+  | { status: 'ready'; data: AgentsResponse; refreshedAt: string };
 
 /**
  * Owns the agent-list request lifecycle: fetches once on mount with `initial`,
- * and refetches via the returned `load`. Only one fetch is in flight at a
- * time — starting a new one aborts the previous — and a run that we aborted
- * ourselves (unmount, StrictMode remount, or a newer `load`) never settles
- * the UI.
+ * refetches via `load(query)`, and re-runs the last query via `reload()`
+ * (used by auto-refresh). Only one fetch is in flight at a time — starting a
+ * new one aborts the previous — and a run that we aborted ourselves (unmount,
+ * StrictMode remount, or a newer `load`) never settles the UI.
  *
  * @param initial Query used for the automatic fetch on mount. Read once;
  *   later changes to the argument are ignored.
@@ -28,9 +28,10 @@ export type AgentsState =
 export function useAgents(initial: AgentsQuery) {
   const [state, setState] = useState<AgentsState>({ status: 'loading' });
   const inflight = useRef<AbortController | null>(null);
-  const initialQuery = useRef(initial);
+  const lastQuery = useRef(initial);
 
   const load = useCallback((query: AgentsQuery) => {
+    lastQuery.current = query;
     inflight.current?.abort();
     const ctl = new AbortController();
     inflight.current = ctl;
@@ -38,7 +39,9 @@ export function useAgents(initial: AgentsQuery) {
 
     fetchAgents({ ...query, signal: ctl.signal })
       .then((data) => {
-        if (!ctl.signal.aborted) setState({ status: 'ready', data });
+        if (!ctl.signal.aborted) {
+          setState({ status: 'ready', data, refreshedAt: new Date().toLocaleTimeString() });
+        }
       })
       .catch((e: unknown) => {
         if (ctl.signal.aborted) return;
@@ -46,10 +49,12 @@ export function useAgents(initial: AgentsQuery) {
       });
   }, []);
 
+  const reload = useCallback(() => load(lastQuery.current), [load]);
+
   useEffect(() => {
-    load(initialQuery.current);
+    load(lastQuery.current);
     return () => inflight.current?.abort();
   }, [load]);
 
-  return { state, load };
+  return { state, load, reload };
 }

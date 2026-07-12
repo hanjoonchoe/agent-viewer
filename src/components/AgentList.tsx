@@ -1,24 +1,7 @@
 import { statusOf, type Agent } from '../lib/types';
 import { useAgentCard } from '../hooks/useAgentCard';
-import { protocolsOf, type Protocol } from '../lib/filtering';
-import { BracesIcon, ImageOffIcon, StatusIcon } from './icons';
-
-const PROTO_TAG: Record<Protocol, string> = { a2a: 'tag-accent', mcp: 'tag-neutral' };
-
-const BASESCAN = 'https://sepolia.basescan.org/address/';
-
-const truncate = (addr: string) => (addr.length > 12 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr);
-
-function Corners() {
-  return (
-    <>
-      <i className="corner tl" />
-      <i className="corner tr" />
-      <i className="corner bl" />
-      <i className="corner br" />
-    </>
-  );
-}
+import { BracesIcon, ImageOffIcon } from './icons';
+import { CardTagChips, Corners, OwnerLink, ProtocolChips, StatusPill } from './shared';
 
 interface CardActions {
   /** Open the raw-JSON dialog for this agent. */
@@ -32,14 +15,12 @@ interface CardActions {
  * name/description (card-enriched), owner link, and service endpoints.
  * The whole card opens the detail dialog; inner links stop propagation.
  */
-
 function AgentCard({ agent, onShowRaw, onSelect }: { agent: Agent } & CardActions) {
-  const status = statusOf(agent);
   const { card } = useAgentCard(agent);
   return (
     <li
       className="agent-card blueprint"
-      data-status={status}
+      data-status={statusOf(agent)}
       role="button"
       tabIndex={0}
       aria-label={`agent ${agent.agentId} details`}
@@ -55,17 +36,9 @@ function AgentCard({ agent, onShowRaw, onSelect }: { agent: Agent } & CardAction
       <div className="card-head">
         <span className="card-id-row">
           <span className="agent-id">#{agent.agentId}</span>
-          {protocolsOf(agent).map((p) => (
-            <span key={p} className={`tag tag-proto ${PROTO_TAG[p]}`}>
-              {p}
-            </span>
-          ))}
-          {card?.x402 && <span className="tag tag-proto tag-outline">x402</span>}
+          <ProtocolChips agent={agent} x402={card?.x402} />
         </span>
-        <span className={`status-pill status-${status}`}>
-          <StatusIcon status={status} />
-          {status}
-        </span>
+        <StatusPill agent={agent} />
       </div>
 
       {agent.name !== null ? (
@@ -81,12 +54,7 @@ function AgentCard({ agent, onShowRaw, onSelect }: { agent: Agent } & CardAction
             {card?.description && <p className="card-desc">{card.description}</p>}
             {card && (card.category || card.tags.length > 0) && (
               <div className="card-tags">
-                {card.category && <span className="tag tag-proto tag-accent-2 uppercase">{card.category}</span>}
-                {card.tags.map((t) => (
-                  <span key={t} className="tag tag-proto tag-neutral">
-                    {t}
-                  </span>
-                ))}
+                <CardTagChips card={card} />
               </div>
             )}
           </div>
@@ -105,15 +73,7 @@ function AgentCard({ agent, onShowRaw, onSelect }: { agent: Agent } & CardAction
 
       <div className="card-footer">
         <span className="row-label">owner</span>
-        <a
-          className="owner-link"
-          href={`${BASESCAN}${agent.owner}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {truncate(agent.owner)}
-        </a>
+        <OwnerLink address={agent.owner} truncated />
         <button
           type="button"
           className="btn btn-ghost btn-icon"

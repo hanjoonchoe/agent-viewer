@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AgentDetail } from './components/AgentDetail';
 import { AgentList } from './components/AgentList';
-import type { Agent } from './lib/types';
 import { Controls, AUTO_RELOAD_SECONDS } from './components/Controls';
 import { FilterBar } from './components/FilterBar';
-import { applyView, type ViewOptions } from './lib/filtering';
+import { RawDialog } from './components/RawDialog';
 import { InfoIcon, SpinnerIcon } from './components/icons';
 import { useAgents, type AgentsQuery } from './hooks/useAgents';
+import { applyView, type ViewOptions } from './lib/filtering';
+import type { Agent } from './lib/types';
 
 const PAGE_SIZE = 12;
 const INITIAL_QUERY: AgentsQuery = { max: 200 };
@@ -24,33 +25,23 @@ interface RawView {
  * state (filters, page, dialogs, auto-reload).
  */
 export default function App() {
-  const { state, load } = useAgents(INITIAL_QUERY);
+  const { state, load, reload } = useAgents(INITIAL_QUERY);
   const [view, setView] = useState<ViewOptions>(INITIAL_VIEW);
   const [page, setPage] = useState(0);
   const [auto, setAuto] = useState(false);
   const [raw, setRaw] = useState<RawView | null>(null);
   const [selected, setSelected] = useState<Agent | null>(null);
-  const [refreshedAt, setRefreshedAt] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (state.status === 'ready') setRefreshedAt(new Date().toLocaleTimeString());
-  }, [state]);
-  const lastQuery = useRef(INITIAL_QUERY);
-
-  const reload = (query: AgentsQuery) => {
-    lastQuery.current = query;
-    setPage(0);
-    load(query);
-  };
 
   useEffect(() => {
     if (!auto) return;
-    const id = setInterval(() => load(lastQuery.current), AUTO_RELOAD_SECONDS * 1000);
+    const id = setInterval(reload, AUTO_RELOAD_SECONDS * 1000);
     return () => clearInterval(id);
-  }, [auto, load]);
+  }, [auto, reload]);
 
-  const ready = state.status === 'ready' ? state.data : null;
-  const filtered = ready ? applyView(ready.agents, view) : [];
+  const showRawAgent = (a: Agent) => setRaw({ title: `agent #${a.agentId}`, data: a });
+
+  const ready = state.status === 'ready' ? state : null;
+  const filtered = ready ? applyView(ready.data.agents, view) : [];
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = Math.min(page, pages - 1); // a smaller result set can strand `page` past the end
   const visible = filtered.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
@@ -65,16 +56,19 @@ export default function App() {
           {ready && (
             <span className="tag tag-outline network-tag">
               <span className="dot" />
-              {ready.network} · {ready.chainId}
+              {ready.data.network} · {ready.data.chainId}
             </span>
           )}
           <Controls
             initial={INITIAL_QUERY}
             busy={state.status === 'loading'}
             auto={auto}
-            onLoad={reload}
+            onLoad={(query) => {
+              setPage(0);
+              load(query);
+            }}
             onAutoChange={setAuto}
-            onShowRaw={() => ready && setRaw({ title: 'API response', data: ready })}
+            onShowRaw={() => ready && setRaw({ title: 'API response', data: ready.data })}
             rawDisabled={!ready}
           />
         </nav>
@@ -106,21 +100,17 @@ export default function App() {
             />
             <p className="meta" data-testid="meta">
               <span>
-                <span className="mono">{ready.count}</span> agents
+                <span className="mono">{ready.data.count}</span> agents
               </span>
               <span className="sep">·</span>
               <span>
-                from block <span className="mono">{ready.fromBlock}</span>
+                from block <span className="mono">{ready.data.fromBlock}</span>
               </span>
-              {refreshedAt && (
-                <>
-                  <span className="sep">·</span>
-                  <span>
-                    refreshed <span className="mono">{refreshedAt}</span>
-                  </span>
-                </>
-              )}
-              {filtered.length !== ready.agents.length && (
+              <span className="sep">·</span>
+              <span>
+                refreshed <span className="mono">{ready.refreshedAt}</span>
+              </span>
+              {filtered.length !== ready.data.agents.length && (
                 <>
                   <span className="sep">·</span>
                   <span>
@@ -137,11 +127,7 @@ export default function App() {
               </div>
             ) : (
               <>
-                <AgentList
-                  agents={visible}
-                  onSelect={setSelected}
-                  onShowRaw={(a) => setRaw({ title: `agent #${a.agentId}`, data: a })}
-                />
+                <AgentList agents={visible} onSelect={setSelected} onShowRaw={showRawAgent} />
                 <nav className="pager">
                   <button className="btn btn-secondary" disabled={current === 0} onClick={() => setPage(current - 1)}>
                     ‹ prev
@@ -164,26 +150,10 @@ export default function App() {
       </main>
 
       {selected && !raw && (
-        <AgentDetail
-          agent={selected}
-          onClose={() => setSelected(null)}
-          onShowRaw={(a) => setRaw({ title: `agent #${a.agentId}`, data: a })}
-        />
+        <AgentDetail agent={selected} onClose={() => setSelected(null)} onShowRaw={showRawAgent} />
       )}
 
-      {raw && (
-        <div className="dialog-backdrop" onClick={() => setRaw(null)}>
-          <div className="dialog" role="dialog" aria-label={raw.title} onClick={(e) => e.stopPropagation()}>
-            <h2 className="dialog-title">{raw.title}</h2>
-            <pre>{JSON.stringify(raw.data, null, 2)}</pre>
-            <div className="dialog-actions">
-              <button className="btn btn-secondary" onClick={() => setRaw(null)}>
-                close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {raw && <RawDialog title={raw.title} data={raw.data} onClose={() => setRaw(null)} />}
     </div>
   );
 }
